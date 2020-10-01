@@ -11,7 +11,7 @@ export class GlobalService {
   endDate: Date;
   formatDate = "YYYY-MM-DD HH:mm:ss.SSS";
   formatDateShort = "YYYY-MM-DD HH:mm";
-  url:string="http://192.168.2.11:5300/api/";   //tmm
+  url:string="http://192.168.2.12:5300/api/";   //tmm
   
   selectedTags: tagStructure[];
 

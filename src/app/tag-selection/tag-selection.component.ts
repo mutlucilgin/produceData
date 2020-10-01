@@ -18,8 +18,8 @@ export class TagSelectionComponent {
 
   displayedColumns: string[] = ['no', 'name', 'description', 'location', 'client', 'extra', 'action'];
   columnsToDisplay: string[] = this.displayedColumns.slice();
-  period = 5;
-  typePeriod = "s";
+  period = 1;
+  typePeriod = "h";
   constructor(public dialog: MatDialog, public globalService: GlobalService) { }
 
   selecetTags() {
@@ -59,15 +59,17 @@ export class TagSelectionComponent {
     let tagData: any[] = [];
     let endDate = moment(moment(this.globalService.endDate).format(this.globalService.formatDateShort));
     let tempDate = moment(moment(this.globalService.beginDate).format(this.globalService.formatDateShort));
-    let saat = Number(moment().format('HH')) * 60;
+    let saat = Number(moment(this.globalService.beginDate).format('HH')) * 60;
+    let iMinute = Number(moment(tempDate).format('mm')) + saat;
+
     while (moment(tempDate).add(period, "s") <= endDate) {
       tempDate = moment(tempDate).add(period, "s");
-      let toplamdakika = Number(moment(tempDate).format('mm')) + saat;
-
+      iMinute = Number(moment(tempDate).format("mm")) + Number(moment(tempDate).format("HH")) * 60;
+      //console.log(tempDate.toISOString())
       tagData.push({
         iDay: tempDate.dayOfYear() - 1, lastChange: tempDate.toISOString(), minutes:
           [{
-            iMinute: toplamdakika, lastChange: tempDate.toISOString(), tags:
+            iMinute: iMinute, lastChange: tempDate.toISOString(), tags:
               [{
                 no: selectedTag.no, Values:
                   [{ Value: value.toString(), timeStamp: tempDate.format(this.globalService.formatDate) }]
@@ -77,7 +79,10 @@ export class TagSelectionComponent {
 
       value++;
     }
-
+    // tagData.forEach(val=>
+    //   console.log(val.minutes[0].iMinute)
+    //   )
+    console.log(tagData)
     //ayrı ayrı üretilen data birleştiriliyor
     this.combineData(tagData);
   }
@@ -86,35 +91,59 @@ export class TagSelectionComponent {
     let iMinutes: any[] = [];
     let tags: any[] = [];
     let tagValues: any[] = [];
-
+    let countDay = 0;
+    let countMinute = 0;
     if (tagData.length != 0) {
       combineData.push(tagData[0])
     }
 
+    // Day değerlerini birleştirme
+    for (let i = 0; i < tagData.length - 1; i++) {
+      if (tagData[i].iDay != tagData[i + 1].iDay) {
+        // combineData = tagData.concat(combineData[combineData.length - 1]);
+        // combineData[combineData.length - 1].lastChange = tagData[i + 1].lastChange;
+        combineData.push(tagData[i + 1]);
+      } else {
+        combineData[combineData.length - 1].lastChange = tagData[i + 1].lastChange;
+      }
+    }
     // Minute değerlerini birleştirme
     for (let i = 0; i < tagData.length - 1; i++) {
-      if (tagData[i].iDay == tagData[i + 1].iDay && tagData[i].minutes[0].iMinute != tagData[i + 1].minutes[0].iMinute) {
-        combineData[combineData.length - 1].minutes = tagData[i + 1].minutes.concat(combineData[combineData.length - 1].minutes)
-        combineData[0].lastChange = tagData[i + 1].lastChange;
+      if (tagData[i].iDay == tagData[i + 1].iDay) {
+        if (tagData[i + 1].minutes[0].iMinute != undefined && tagData[i].minutes[0].iMinute != tagData[i + 1].minutes[0].iMinute) {
+          combineData[countDay].minutes = tagData[i + 1].minutes.concat(combineData[countDay].minutes);
+        } else countMinute++;
+      } else {
+        countDay++;
       }
     }
-    combineData[combineData.length - 1].minutes.reverse();
-
+    combineData.forEach(value => value.minutes.reverse())
+    countMinute = 0;
+    countDay = 0;
     // Value değerlerini birleştirme
-    let countMinute = 0;
     for (let i = 0; i < tagData.length - 1; i++) {
-      if (tagData[i].iDay == tagData[i + 1].iDay && tagData[i].minutes[0].iMinute == tagData[i + 1].minutes[0].iMinute) {
-        if (tagData[i].minutes[0].tags[0].no == tagData[i + 1].minutes[0].tags[0].no) {
-          combineData[0].minutes[countMinute].tags[0].Values = tagData[i + 1].minutes[0].tags[0].
-            Values.concat(combineData[0].minutes[countMinute].tags[0].Values);
+      if (tagData[i].iDay == tagData[i + 1].iDay) {
+        if (tagData[i].minutes[0].iMinute == tagData[i + 1].minutes[0].iMinute) {
+          if (tagData[i].minutes[0].tags[0].no == tagData[i + 1].minutes[0].tags[0].no) {
+            console.log(combineData[countDay].minutes[countMinute])
+            combineData[countDay].minutes[countMinute].tags[0].Values = tagData[i + 1].minutes[0].tags[0].
+              Values.concat(combineData[countDay].minutes[countMinute].tags[0].Values);
 
-          combineData[0].minutes[countMinute].lastChange = tagData[i + 1].minutes[0].lastChange;
+            combineData[countDay].minutes[countMinute].lastChange = tagData[i + 1].minutes[0].lastChange;
+          }
+        } else {
+          countMinute++;
         }
       } else {
-        combineData[0].minutes[countMinute].tags[0].Values.reverse();
-        countMinute++;
+        countMinute = 0;
+        countDay++;
       }
     }
-    this.globalService.sendData(combineData);
+    combineData.forEach(day =>
+      day.minutes.forEach(minute =>
+        minute.tags[0].Values.reverse()));
+    //combineData[countDay].minutes[countMinute].tags[0].Values.reverse();
+    console.log(combineData)
+    // this.globalService.sendData(combineData);
   }
 }
