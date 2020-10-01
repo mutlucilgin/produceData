@@ -7,8 +7,8 @@ import { DatePickerComponent } from './date-picker/date-picker.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import {MatInputModule} from '@angular/material/input';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatFormFieldModule} from '@angular/material/form-field'; 
+import {MatDatepickerModule} from '@angular/material/datepicker'; 
 import {MatCardModule} from '@angular/material/card';
 import { TagSelectionComponent } from './tag-selection/tag-selection.component';
 import { TagListComponent } from './tag-list-dialog/tag-list.component';
@@ -18,6 +18,9 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatDialogModule} from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import {MatSortModule} from '@angular/material/sort';
 
 @NgModule({
   declarations: [
@@ -39,7 +42,10 @@ import { FormsModule } from '@angular/forms';
     MatIconModule,
     MatButtonModule,
     MatDialogModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule,
+    MatPaginatorModule,
+    MatSortModule
   ],
   providers: [],
   bootstrap: [AppComponent],

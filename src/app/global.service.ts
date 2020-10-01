@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as moment from 'moment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -8,35 +9,59 @@ export class GlobalService {
 
   beginDate: Date;
   endDate: Date;
-  formatDate="YYYY-MM-DD HH:mm:ss.SSS";
-  formatDateShort="YYYY-MM-DD HH:mm";
-  selectedTags:PeriodicElement[];
+  formatDate = "YYYY-MM-DD HH:mm:ss.SSS";
+  formatDateShort = "YYYY-MM-DD HH:mm";
+  url:string="http://192.168.2.11:5300/api/";
+  selectedTags: tagStructure[];
 
-  tagList: any[] = [
-    {position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H'},
-    {position: 2, name: 'Helium', weight: 4.0026, symbol: 'He'},
-    {position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li'},
-    {position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be'},
-    {position: 5, name: 'Boron', weight: 10.811, symbol: 'B'},
-    {position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C'},
-    {position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N'},
-    {position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O'},
-    {position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F'},
-    {position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne'},
-  ];
+  tagList: any;
 
-  constructor() {
-   }
-   sendData(data,dayOfYear){
-     console.log(data);
-     console.log(dayOfYear);
-   }
+  constructor(private http: HttpClient) {
+    this.http.get(this.url+"Tags").subscribe(value => {
+      this.tagList = [];
+      this.tagList = value;
+      console.log("tag listesi ", this.tagList)
+
+    })
+  }
+
+
+  sendData(recordTag) {
+    console.log(recordTag);
+      this.http.post (this.url+"Records",  JSON.stringify(recordTag[0]),
+    {headers:new HttpHeaders( {'Content-Type': 'application/json'})})
+    .subscribe(response =>{
+    
+    console.log(response);
+    console.log("combineData", recordTag)
+    
+    },error=> 
+    console.log(error))    
+    
+
+    }
 }
-   
-export interface PeriodicElement {
+
+export interface tagStructure {
+  no: string;
   name: string;
-  position: number;
-  weight: number;
-  symbol: string;
-  action:string;
+  description: string;
+  location: number;
+  client: number;
+  extra: string;
+}
+export interface recordStructure {
+  iDay: string,
+  lastChange: string,
+  minutes: [{
+    iMinute:string,
+    lastChange: string,
+    tags:[{
+      no:number,
+      Values:[{
+        Value:string,
+        timeStamp:string
+      }]
+    }]
+  }];
 }
